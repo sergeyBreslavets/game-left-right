@@ -151,13 +151,21 @@ export class ControllerMain {
         });
         avgtime = avgtime / allGame / 10;
 
+        let procWin = win / allGame * 100;
+        let recom = "вы невнимательны";
+        if (procWin >= 60) { recom = "надо стараться"; }
+        if (procWin >= 80) { recom = "вы почти четкий"; }
+        if (procWin >= 90) { recom = "вы четкий"; }
+
+
+
 
         let text = "Среднее время ответа в с = " + avgtime + "<br>" +
             "всего игр = " + allGame + "<br>" +
             "Побед = " + win + "<br>" +
             "Поражений = " + lose + "<br>" +
             "max time = " + maxTime / 10 + "<br>" +
-            "min time = " + minTime / 10 + "<br>";
+            "min time = " + minTime / 10 + "<br>" + " % " + procWin + " " + recom;
 
         this.view.viewAllres(text);
     }

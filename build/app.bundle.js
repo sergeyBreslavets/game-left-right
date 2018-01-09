@@ -85,14 +85,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 var ControllerMain = exports.ControllerMain = function () {
-    function ControllerMain(view, idleftbnt, idrightbtn, idresbtn, model) {
+    function ControllerMain(view, idleftbnt, idrightbtn, idresbtn, idbtnstart, model) {
         _classCallCheck(this, ControllerMain);
 
         this.view = view;
         this.model = model;
 
         this.idresbtn = idresbtn;
-
+        this.idbtnstart = idbtnstart;
         this.idleftbnt = idleftbnt;
         this.idrightbtn = idrightbtn;
         this.nowQuestion = 0; // 0-left 1-right
@@ -110,18 +110,21 @@ var ControllerMain = exports.ControllerMain = function () {
             var btnLeft = document.getElementById(this.idleftbnt);
             var btnRight = document.getElementById(this.idrightbtn);
             var btnAllres = document.getElementById(this.idresbtn);
-            self.next();
+            var btnstart = document.getElementById(this.idbtnstart);
 
             btnLeft.onclick = function (event) {
-                this.nowAnswer = 0;
-                self.choiceAnswer(this.nowAnswer);
+
+                self.choiceAnswer(0);
             };
             btnRight.onclick = function (event) {
-                this.nowAnswer = 1;
-                self.choiceAnswer(this.nowAnswer);
+
+                self.choiceAnswer(1);
             };
             btnAllres.onclick = function (event) {
                 self.allresShow();
+            };
+            btnstart.onclick = function (event) {
+                self.startGame();
             };
         }
     }, {
@@ -137,7 +140,9 @@ var ControllerMain = exports.ControllerMain = function () {
     }, {
         key: "choiceAnswer",
         value: function choiceAnswer(res) {
-            console.log(res);
+            // alert(res);
+            this.nowAnswer = res;
+
             var text = "Ошибка";
             if (res == this.nowQuestion) {
                 text = "Верно";
@@ -148,9 +153,11 @@ var ControllerMain = exports.ControllerMain = function () {
     }, {
         key: "next",
         value: function next() {
-            self.makeQuestion();
             self.stopTimer();
             self.writeAnswerToData();
+
+            self.makeQuestion();
+
             self.startTime();
         }
     }, {
@@ -197,6 +204,9 @@ var ControllerMain = exports.ControllerMain = function () {
     }, {
         key: "writeAnswerToData",
         value: function writeAnswerToData() {
+            console.log(this.nowQuestion);
+
+            console.log(this.nowAnswer);
 
             this.model.data.push({ "id": this.model.data.length, "time": this.timeAnswer, "quest": this.nowQuestion, "answer": this.nowAnswer });
             console.log(this.model.data);
@@ -235,6 +245,11 @@ var ControllerMain = exports.ControllerMain = function () {
             var text = "Среднее время ответа в с = " + avgtime + "<br>" + "всего игр = " + allGame + "<br>" + "Побед = " + win + "<br>" + "Поражений = " + lose + "<br>" + "max time = " + maxTime / 10 + "<br>" + "min time = " + minTime / 10 + "<br>";
 
             this.view.viewAllres(text);
+        }
+    }, {
+        key: "startGame",
+        value: function startGame() {
+            self.next();
         }
     }]);
 
@@ -369,12 +384,12 @@ var idresult = "result";
 var idtime = "time";
 var idresbtn = "resbtn";
 var idresall = "resall";
+var idbtnstart = "startbtn";
 var data = [];
 
 var model = new _model.modelMain(data);
 var view = new _view.viewMain(idtext, idresult, idresall, idtime);
-view.viewTime("0000");
-var controller = new _controller.ControllerMain(view, idleftbnt, idrightbtn, idresbtn, model);
+var controller = new _controller.ControllerMain(view, idleftbnt, idrightbtn, idresbtn, idbtnstart, model);
 
 /***/ })
 /******/ ]);

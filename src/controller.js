@@ -3,12 +3,12 @@
 
 export class ControllerMain {
 
-    constructor(view, idleftbnt, idrightbtn, idresbtn, model) {
+    constructor(view, idleftbnt, idrightbtn, idresbtn, idbtnstart, model) {
         this.view = view;
         this.model = model;
 
         this.idresbtn = idresbtn;
-
+        this.idbtnstart = idbtnstart;
         this.idleftbnt = idleftbnt;
         this.idrightbtn = idrightbtn;
         this.nowQuestion = 0; // 0-left 1-right
@@ -25,18 +25,21 @@ export class ControllerMain {
         let btnLeft = document.getElementById(this.idleftbnt);
         let btnRight = document.getElementById(this.idrightbtn);
         let btnAllres = document.getElementById(this.idresbtn);
-        self.next();
+        let btnstart = document.getElementById(this.idbtnstart);
 
         btnLeft.onclick = function(event) {
-            this.nowAnswer = 0;
-            self.choiceAnswer(this.nowAnswer);
+
+            self.choiceAnswer(0);
         }
         btnRight.onclick = function(event) {
-            this.nowAnswer = 1;
-            self.choiceAnswer(this.nowAnswer);
+
+            self.choiceAnswer(1);
         }
         btnAllres.onclick = function(event) {
             self.allresShow();
+        }
+        btnstart.onclick = function(event) {
+            self.startGame();
         }
     }
 
@@ -51,7 +54,10 @@ export class ControllerMain {
     }
 
     choiceAnswer(res) {
-        console.log(res);
+        // alert(res);
+        this.nowAnswer = res;
+
+
         let text = "Ошибка";
         if (res == this.nowQuestion) {
             text = "Верно";
@@ -61,9 +67,11 @@ export class ControllerMain {
     }
 
     next() {
-        self.makeQuestion();
         self.stopTimer();
         self.writeAnswerToData();
+
+        self.makeQuestion();
+
         self.startTime();
 
     }
@@ -105,6 +113,9 @@ export class ControllerMain {
     }
 
     writeAnswerToData() {
+        console.log(this.nowQuestion);
+
+        console.log(this.nowAnswer);
 
         this.model.data.push({ "id": this.model.data.length, "time": this.timeAnswer, "quest": this.nowQuestion, "answer": this.nowAnswer });
         console.log(this.model.data);
@@ -151,4 +162,7 @@ export class ControllerMain {
         this.view.viewAllres(text);
     }
 
+    startGame() {
+        self.next();
+    }
 }

@@ -3,11 +3,17 @@
 
 export class ControllerMain {
 
-    constructor(view, idleftbnt, idrightbtn) {
+    constructor(view, idleftbnt, idrightbtn, idresbtn, model) {
         this.view = view;
+        this.model = model;
+
+        this.idresbtn = idresbtn;
+
         this.idleftbnt = idleftbnt;
         this.idrightbtn = idrightbtn;
         this.nowQuestion = 0; // 0-left 1-right
+        this.nowAnswer = 0;
+
         self = this;
         this.timer = {};
         self.init();
@@ -18,14 +24,19 @@ export class ControllerMain {
     init() {
         let btnLeft = document.getElementById(this.idleftbnt);
         let btnRight = document.getElementById(this.idrightbtn);
-
+        let btnAllres = document.getElementById(this.idresbtn);
         self.next();
 
         btnLeft.onclick = function(event) {
-            self.choiceAnswer(0);
+            this.nowAnswer = 0;
+            self.choiceAnswer(this.nowAnswer);
         }
-        btnRight.onclick = function(evet) {
-            self.choiceAnswer(1);
+        btnRight.onclick = function(event) {
+            this.nowAnswer = 1;
+            self.choiceAnswer(this.nowAnswer);
+        }
+        btnAllres.onclick = function(event) {
+            self.allresShow();
         }
     }
 
@@ -52,22 +63,31 @@ export class ControllerMain {
     next() {
         self.makeQuestion();
         self.stopTimer();
+        self.writeAnswerToData();
         self.startTime();
+
     }
 
     startTime() {
         let time = "00:00";
         // начать повторы с интервалом 2 сек
+        let ms = 0;
         let s = 0;
         let m = 0;
         this.timeAnswer = 0;
         this.view.viewTime(time);
         this.timer = setInterval(function() {
-            if (s == 60) {
-                m = m + 1;
-                s = 0;
+
+            if (ms == 10) {
+
+                if (s == 60) {
+                    m = m + 1;
+                    s = 0;
+                }
+                s = s + 1;
+                ms = 0;
             }
-            s = s + 1;
+            ms = ms + 1;
             let _s = s;
             let _m = m;
             if (m < 10) { _m = "0" + m; }
@@ -76,15 +96,7 @@ export class ControllerMain {
             console.log(time);
             self.view.viewTime(time);
             self.timeAnswer = self.timeAnswer + 1;
-        }, 1000);
-
-        // через 5 сек остановить повторы
-        //   setTimeout(function() {
-        //     clearInterval(timerId);
-        //     alert( 'стоп' );
-        //   }, 5000); 
-
-
+        }, 100);
 
 
     }
@@ -92,5 +104,51 @@ export class ControllerMain {
         clearInterval(this.timer);
     }
 
+    writeAnswerToData() {
+
+        this.model.data.push({ "id": this.model.data.length, "time": this.timeAnswer, "quest": this.nowQuestion, "answer": this.nowAnswer });
+        console.log(this.model.data);
+    }
+
+    allresShow() {
+        self.stopTimer();
+        console.log(this.model.data);
+        this.model.data.splice(0, 1);
+        console.log(this.model.data);
+        let win = 0;
+        let lose = 0;
+        let allGame = 0;
+        let avgtime = 0;
+        let maxTime = 0;
+        let minTime = this.model.data[0].time;
+
+        this.model.data.forEach(element => {
+            allGame = allGame + 1;
+            if (element.quest == element.answer) {
+                win = win + 1;
+            } else {
+                lose = lose + 1;
+            }
+            avgtime = avgtime + element.time;
+            if (minTime > element.time) {
+                minTime = element.time;
+            }
+            if (maxTime < element.time) {
+                maxTime = element.time;
+            }
+
+        });
+        avgtime = avgtime / allGame / 10;
+
+
+        let text = "Среднее время ответа в с = " + avgtime + "<br>" +
+            "всего игр = " + allGame + "<br>" +
+            "Побед = " + win + "<br>" +
+            "Поражений = " + lose + "<br>" +
+            "max time = " + maxTime / 10 + "<br>" +
+            "min time = " + minTime / 10 + "<br>";
+
+        this.view.viewAllres(text);
+    }
 
 }

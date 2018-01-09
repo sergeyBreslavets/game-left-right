@@ -3,11 +3,11 @@
 
 export class viewMain {
 
-    constructor(idtext, idres, idtime, data) {
+    constructor(idtext, idres, idresall, idtime) {
         this.idtext = idtext;
         this.idres = idres;
         this.idtime = idtime;
-        this.data = data;
+        this.idresall = idresall;
     }
 
     viewtext(text) {
@@ -24,5 +24,8 @@ export class viewMain {
         let timeEl = document.getElementById(this.idtime);
         timeEl.innerHTML = text;
     }
-
+    viewAllres(text) {
+        let resallEl = document.getElementById(this.idresall);
+        resallEl.innerHTML = text;
+    }
 }

@@ -3,8 +3,8 @@
 
 export class modelMain {
 
-    constructor(listall) {
-        this.listall = listall;
+    constructor(data) {
+        this.data = data;
         self = this;
     }
 

@@ -85,13 +85,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 var ControllerMain = exports.ControllerMain = function () {
-    function ControllerMain(view, idleftbnt, idrightbtn) {
+    function ControllerMain(view, idleftbnt, idrightbtn, idresbtn, model) {
         _classCallCheck(this, ControllerMain);
 
         this.view = view;
+        this.model = model;
+
+        this.idresbtn = idresbtn;
+
         this.idleftbnt = idleftbnt;
         this.idrightbtn = idrightbtn;
         this.nowQuestion = 0; // 0-left 1-right
+        this.nowAnswer = 0;
+
         self = this;
         this.timer = {};
         self.init();
@@ -103,14 +109,19 @@ var ControllerMain = exports.ControllerMain = function () {
         value: function init() {
             var btnLeft = document.getElementById(this.idleftbnt);
             var btnRight = document.getElementById(this.idrightbtn);
-
+            var btnAllres = document.getElementById(this.idresbtn);
             self.next();
 
             btnLeft.onclick = function (event) {
-                self.choiceAnswer(0);
+                this.nowAnswer = 0;
+                self.choiceAnswer(this.nowAnswer);
             };
-            btnRight.onclick = function (evet) {
-                self.choiceAnswer(1);
+            btnRight.onclick = function (event) {
+                this.nowAnswer = 1;
+                self.choiceAnswer(this.nowAnswer);
+            };
+            btnAllres.onclick = function (event) {
+                self.allresShow();
             };
         }
     }, {
@@ -139,6 +150,7 @@ var ControllerMain = exports.ControllerMain = function () {
         value: function next() {
             self.makeQuestion();
             self.stopTimer();
+            self.writeAnswerToData();
             self.startTime();
         }
     }, {
@@ -146,16 +158,23 @@ var ControllerMain = exports.ControllerMain = function () {
         value: function startTime() {
             var time = "00:00";
             // начать повторы с интервалом 2 сек
+            var ms = 0;
             var s = 0;
             var m = 0;
             this.timeAnswer = 0;
             this.view.viewTime(time);
             this.timer = setInterval(function () {
-                if (s == 60) {
-                    m = m + 1;
-                    s = 0;
+
+                if (ms == 10) {
+
+                    if (s == 60) {
+                        m = m + 1;
+                        s = 0;
+                    }
+                    s = s + 1;
+                    ms = 0;
                 }
-                s = s + 1;
+                ms = ms + 1;
                 var _s = s;
                 var _m = m;
                 if (m < 10) {
@@ -168,19 +187,54 @@ var ControllerMain = exports.ControllerMain = function () {
                 console.log(time);
                 self.view.viewTime(time);
                 self.timeAnswer = self.timeAnswer + 1;
-            }, 1000);
-
-            // через 5 сек остановить повторы
-            //   setTimeout(function() {
-            //     clearInterval(timerId);
-            //     alert( 'стоп' );
-            //   }, 5000); 
-
+            }, 100);
         }
     }, {
         key: "stopTimer",
         value: function stopTimer() {
             clearInterval(this.timer);
+        }
+    }, {
+        key: "writeAnswerToData",
+        value: function writeAnswerToData() {
+
+            this.model.data.push({ "id": this.model.data.length, "time": this.timeAnswer, "quest": this.nowQuestion, "answer": this.nowAnswer });
+            console.log(this.model.data);
+        }
+    }, {
+        key: "allresShow",
+        value: function allresShow() {
+            self.stopTimer();
+            console.log(this.model.data);
+            this.model.data.splice(0, 1);
+            console.log(this.model.data);
+            var win = 0;
+            var lose = 0;
+            var allGame = 0;
+            var avgtime = 0;
+            var maxTime = 0;
+            var minTime = this.model.data[0].time;
+
+            this.model.data.forEach(function (element) {
+                allGame = allGame + 1;
+                if (element.quest == element.answer) {
+                    win = win + 1;
+                } else {
+                    lose = lose + 1;
+                }
+                avgtime = avgtime + element.time;
+                if (minTime > element.time) {
+                    minTime = element.time;
+                }
+                if (maxTime < element.time) {
+                    maxTime = element.time;
+                }
+            });
+            avgtime = avgtime / allGame / 10;
+
+            var text = "Среднее время ответа в с = " + avgtime + "<br>" + "всего игр = " + allGame + "<br>" + "Побед = " + win + "<br>" + "Поражений = " + lose + "<br>" + "max time = " + maxTime / 10 + "<br>" + "min time = " + minTime / 10 + "<br>";
+
+            this.view.viewAllres(text);
         }
     }]);
 
@@ -204,10 +258,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var modelMain = exports.modelMain = function () {
-    function modelMain(listall) {
+    function modelMain(data) {
         _classCallCheck(this, modelMain);
 
-        this.listall = listall;
+        this.data = data;
         self = this;
     }
 
@@ -257,13 +311,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 var viewMain = exports.viewMain = function () {
-    function viewMain(idtext, idres, idtime, data) {
+    function viewMain(idtext, idres, idresall, idtime) {
         _classCallCheck(this, viewMain);
 
         this.idtext = idtext;
         this.idres = idres;
         this.idtime = idtime;
-        this.data = data;
+        this.idresall = idresall;
     }
 
     _createClass(viewMain, [{
@@ -283,6 +337,12 @@ var viewMain = exports.viewMain = function () {
         value: function viewTime(text) {
             var timeEl = document.getElementById(this.idtime);
             timeEl.innerHTML = text;
+        }
+    }, {
+        key: "viewAllres",
+        value: function viewAllres(text) {
+            var resallEl = document.getElementById(this.idresall);
+            resallEl.innerHTML = text;
         }
     }]);
 
@@ -307,11 +367,14 @@ var idleftbnt = "left";
 var idrightbtn = "right";
 var idresult = "result";
 var idtime = "time";
+var idresbtn = "resbtn";
+var idresall = "resall";
 var data = [];
 
-var view = new _view.viewMain(idtext, idresult, idtime, data);
+var model = new _model.modelMain(data);
+var view = new _view.viewMain(idtext, idresult, idresall, idtime);
 view.viewTime("0000");
-var controller = new _controller.ControllerMain(view, idleftbnt, idrightbtn);
+var controller = new _controller.ControllerMain(view, idleftbnt, idrightbtn, idresbtn, model);
 
 /***/ })
 /******/ ]);

@@ -93,8 +93,9 @@ var ControllerMain = exports.ControllerMain = function () {
         this.idrightbtn = idrightbtn;
         this.nowQuestion = 0; // 0-left 1-right
         self = this;
-
+        this.timer = {};
         self.init();
+        this.timeAnswer = 0;
     }
 
     _createClass(ControllerMain, [{
@@ -103,7 +104,7 @@ var ControllerMain = exports.ControllerMain = function () {
             var btnLeft = document.getElementById(this.idleftbnt);
             var btnRight = document.getElementById(this.idrightbtn);
 
-            self.makeQuestion();
+            self.next();
 
             btnLeft.onclick = function (event) {
                 self.choiceAnswer(0);
@@ -137,6 +138,49 @@ var ControllerMain = exports.ControllerMain = function () {
         key: "next",
         value: function next() {
             self.makeQuestion();
+            self.stopTimer();
+            self.startTime();
+        }
+    }, {
+        key: "startTime",
+        value: function startTime() {
+            var time = "00:00";
+            // начать повторы с интервалом 2 сек
+            var s = 0;
+            var m = 0;
+            this.timeAnswer = 0;
+            this.view.viewTime(time);
+            this.timer = setInterval(function () {
+                if (s == 60) {
+                    m = m + 1;
+                    s = 0;
+                }
+                s = s + 1;
+                var _s = s;
+                var _m = m;
+                if (m < 10) {
+                    _m = "0" + m;
+                }
+                if (s < 10) {
+                    _s = "0" + s;
+                }
+                time = _m + ":" + _s;
+                console.log(time);
+                self.view.viewTime(time);
+                self.timeAnswer = self.timeAnswer + 1;
+            }, 1000);
+
+            // через 5 сек остановить повторы
+            //   setTimeout(function() {
+            //     clearInterval(timerId);
+            //     alert( 'стоп' );
+            //   }, 5000); 
+
+        }
+    }, {
+        key: "stopTimer",
+        value: function stopTimer() {
+            clearInterval(this.timer);
         }
     }]);
 
@@ -213,11 +257,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 var viewMain = exports.viewMain = function () {
-    function viewMain(idtext, idres, data) {
+    function viewMain(idtext, idres, idtime, data) {
         _classCallCheck(this, viewMain);
 
         this.idtext = idtext;
         this.idres = idres;
+        this.idtime = idtime;
         this.data = data;
     }
 
@@ -232,6 +277,12 @@ var viewMain = exports.viewMain = function () {
         value: function viewRes(text) {
             var resel = document.getElementById(this.idres);
             resel.innerHTML = text;
+        }
+    }, {
+        key: "viewTime",
+        value: function viewTime(text) {
+            var timeEl = document.getElementById(this.idtime);
+            timeEl.innerHTML = text;
         }
     }]);
 
@@ -255,10 +306,11 @@ var idtext = "text";
 var idleftbnt = "left";
 var idrightbtn = "right";
 var idresult = "result";
+var idtime = "time";
 var data = [];
 
-var view = new _view.viewMain(idtext, idresult, data);
-view.viewRes("zlo");
+var view = new _view.viewMain(idtext, idresult, idtime, data);
+view.viewTime("0000");
 var controller = new _controller.ControllerMain(view, idleftbnt, idrightbtn);
 
 /***/ })
